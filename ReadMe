@@ -1,0 +1,5 @@
+Es müssen folgenede Packete installiert werden
+
+pip install selenium
+pip install driver-manager
+pip install panda
