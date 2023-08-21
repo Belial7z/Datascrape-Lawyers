@@ -20,7 +20,7 @@ data = []
 
 
 driver.get("https://bravsearch.bea-brak.de/bravsearch/index.brak")
-time.sleep(2)
+time.sleep(1)
 
 while x<7571:
     # Dropdown-Tabelle öffnen
@@ -53,6 +53,23 @@ while x<7571:
             info_element = driver.find_element(By.XPATH, f"//a[@id='resultForm:dlResultList:{i}:j_idt208']")
             info_element.click()
             time.sleep(0.5)
+            # Adresse extrahieren, falls vorhanden
+            try:
+                address_lines = driver.find_elements(By.XPATH,
+                                                     "//div[@id='resultDetailForm:tabPersonal:j_idt352:textEntry']//div[@class='cssColResultDetailTextLine']")
+                street, city_zip_country = address_lines[0].text.strip(), address_lines[1].text.strip()
+
+                # PLZ und Ort in separate Variablen aufteilen
+                city_zip, country = city_zip_country.split(" ", 1) if " " in city_zip_country else (city_zip_country, "")
+
+                # Straße, PLZ und Ort in separate Zellen speichern
+                street = street if street else ""
+                city_zip = city_zip if city_zip else ""
+                country = country if country else ""
+
+            except:
+                street, city_zip, country = "", "", ""
+
 
             # Namen extrahieren, falls vorhanden
             try:
@@ -61,15 +78,6 @@ while x<7571:
                 Name = name_element.text.strip()
             except:
                 Name = ""
-
-            # Adresse extrahieren, falls vorhanden
-            try:
-                adresse_element = driver.find_element(By.XPATH,
-                                                      "//div[@id='resultDetailForm:tabPersonal:j_idt352:textEntry']//div[@class='cssColResultDetailText cssColResultDetailTextLine']")
-                Adresse = adresse_element.text.strip()
-            except:
-                Adresse = ""
-
             # Kanzlei extrahieren, falls vorhanden
             try:
                 kanzlei_element = driver.find_element(By.XPATH,
@@ -102,8 +110,8 @@ while x<7571:
                 Telefon = ""
 
             # Daten in Liste speichern, falls mindestens ein Wert vorhanden ist
-            if Name or email or Telefon or Kanzlei or Adresse or Anrede:
-                data.append({'Kanzlei': Kanzlei, 'Adresse': Adresse, 'Name': Name, 'Telefon': Telefon, 'E-Mail': email,
+            if Name or email or Telefon or Kanzlei or street or city_zip or country or Anrede:
+                data.append({'Kanzlei': Kanzlei, 'Straße': street, 'PLZ': city_zip, 'Ort': country, 'Name': Name, 'Telefon': Telefon, 'E-Mail': email,
                              'Anrede': Anrede, })
 
             # Ergebnisse in eine Excel-Datei speichern
@@ -125,7 +133,7 @@ while x<7571:
                     break  # Wenn "Next Page" nicht mehr verfügbar ist, brich die Schleife ab
                 else:
                     next_page_element.click()
-                    time.sleep(1)
+                    time.sleep(0.3)
             except NoSuchElementException:
                 break
     x += 1
@@ -135,6 +143,6 @@ while x<7571:
 
     # Seite neu laden
     driver.refresh()
-    time.sleep(2)
+    time.sleep(0.5)
 
     print(x)
